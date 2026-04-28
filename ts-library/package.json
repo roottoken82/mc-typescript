@@ -1,0 +1,27 @@
+{
+  "name": "mc-typescript",
+  "version": "1.0.0",
+  "description": "TypeScript library for controlling Minecraft via a Forge mod bridge",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "ts-node src/runtime/ScriptHost.ts",
+    "start": "node dist/runtime/ScriptHost.js",
+    "lint": "eslint src --ext .ts",
+    "clean": "rm -rf dist"
+  },
+  "keywords": ["minecraft", "forge", "typescript", "automation", "mod"],
+  "author": "Marco",
+  "license": "MIT",
+  "dependencies": {
+    "ws": "^8.16.0",
+    "chokidar": "^3.6.0",
+    "tsx": "^4.7.0"
+  },
+  "devDependencies": {
+    "@types/ws": "^8.5.10",
+    "@types/node": "^20.11.0",
+    "typescript": "^5.3.3"
+  }
+}
