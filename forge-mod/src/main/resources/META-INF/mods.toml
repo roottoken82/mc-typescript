@@ -1,0 +1,32 @@
+modLoader="javafml"
+loaderVersion="[47,)"
+license="MIT"
+[[dependencies.mcts]]
+    modId="forge"
+    mandatory=true
+    versionRange="[47.2.0,)"
+    ordering="NONE"
+    side="CLIENT"
+
+[[dependencies.mcts]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="[1.20.1,1.21)"
+    ordering="NONE"
+    side="CLIENT"
+
+[[mods]]
+    modId="mcts"
+    version="1.0.0"
+    displayName="mc-typescript"
+    logoFile="mcts.png"
+    description='''
+mc-typescript: Control your Minecraft client with TypeScript.
+Connect via WebSocket on port 8765 to execute scripts.
+'''
+    [[mods.dependencies.mcts]]
+        modId="forge"
+        mandatory=true
+        versionRange="[47.2.0,)"
+        ordering="NONE"
+        side="CLIENT"

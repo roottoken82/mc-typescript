@@ -1,0 +1,32 @@
+# Node / TypeScript
+node_modules/
+dist/
+*.js.map
+*.tsbuildinfo
+
+# Gradle / Java
+.gradle/
+build/
+out/
+*.class
+*.jar
+!forge-mod/libs/*.jar
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Environment
+.env
+.env.local
