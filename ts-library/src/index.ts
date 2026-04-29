@@ -57,6 +57,19 @@ function getEventBus(): EventBus {
         case 'death':
           _eventBus!.emit('death');
           break;
+        // Script control events from the mod → ScriptHost
+        case 'runScript':
+          _eventBus!.emit('runScript', data['script'] as string);
+          break;
+        case 'stopScript':
+          _eventBus!.emit('stopScript', data['script'] as string);
+          break;
+        case 'reloadScript':
+          _eventBus!.emit('reloadScript', data['script'] as string);
+          break;
+        case 'stopAllScripts':
+          _eventBus!.emit('stopAllScripts');
+          break;
         default:
           // Unknown event – forward as-is for extensibility
           _eventBus!.emit(event, data);
@@ -122,6 +135,20 @@ export const mc = {
   /** Whether the library is currently connected to the Forge mod */
   isConnected(): boolean {
     return getWsClient().isConnected();
+  },
+
+  /**
+   * Send a one-way notification to the Forge mod (fire-and-forget).
+   * Used by the ScriptHost to push status updates back to the mod.
+   *
+   * @param action  Action name, e.g. "scriptHost.scriptStatus"
+   * @param params  Payload
+   */
+  sendAction(action: string, params: Record<string, unknown> = {}): void {
+    if (!getWsClient().isConnected()) return;
+    getWsClient().request(action, params).catch((err: Error) => {
+      console.warn('[mc-typescript] sendAction failed:', err.message);
+    });
   },
 };
 

@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.marco.mcts.McTsMod;
+import com.marco.mcts.ScriptManager;
 import com.marco.mcts.actions.*;
 import net.minecraft.client.Minecraft;
 import org.java_websocket.WebSocket;
@@ -148,19 +149,42 @@ public class MessageRouter {
             case "world.spawnPoint"    -> worldActions.spawnPoint();
 
             // ── ScriptHost ──────────────────────────────────────────────────
-            case "scriptHost.listScripts" -> scriptHostListScripts();
+            case "scriptHost.listScripts"  -> scriptHostListScripts();
+            case "scriptHost.scriptStatus" -> scriptHostScriptStatus(params);
 
             default -> throw new IllegalArgumentException("Unknown action: " + action);
         };
     }
 
-    /** Return a simple JSON object listing available scripts (placeholder). */
+    /** Return the list of available scripts known to ScriptManager. */
     private JsonObject scriptHostListScripts() {
-        // In a real implementation the ScriptHost pushes its list via WS.
-        // Here we return an empty list as placeholder.
+        java.util.List<String> names = ScriptManager.getScripts();
         JsonObject result = new JsonObject();
-        result.add("scripts", GSON.toJsonTree(new String[0]));
+        result.add("scripts", GSON.toJsonTree(names.toArray(new String[0])));
         return result;
+    }
+
+    /**
+     * Handle a status update pushed by the TypeScript runtime.
+     *
+     * Expected params:
+     * <pre>{ "script": "name", "status": "running|stopped|error", "error": "msg" }</pre>
+     */
+    private JsonObject scriptHostScriptStatus(JsonObject params) {
+        String script = params.has("script") ? params.get("script").getAsString() : null;
+        String status  = params.has("status") ? params.get("status").getAsString() : "idle";
+        String error   = params.has("error")  ? params.get("error").getAsString()  : null;
+
+        if (script != null) {
+            ScriptManager.ScriptStatus st = switch (status) {
+                case "running" -> ScriptManager.ScriptStatus.RUNNING;
+                case "error"   -> ScriptManager.ScriptStatus.ERROR;
+                default        -> ScriptManager.ScriptStatus.IDLE;
+            };
+            ScriptManager.setStatus(script, st, error);
+            LOGGER.debug("[MessageRouter] Script status update: {} → {}", script, status);
+        }
+        return new JsonObject();
     }
 
     // ──────────────────────────────────────────────────────────────────────────

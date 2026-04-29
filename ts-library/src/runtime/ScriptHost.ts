@@ -44,6 +44,22 @@ function refreshAvailableScripts(): void {
   console.log('[ScriptHost] Available scripts:', availableScripts.join(', ') || '(none)');
 }
 
+/**
+ * Notify the Forge mod about a script status change.
+ * Fire-and-forget – errors are silently ignored.
+ */
+function notifyStatus(
+  script: string,
+  status: 'running' | 'stopped' | 'error',
+  error?: string
+): void {
+  mc.sendAction('scriptHost.scriptStatus', {
+    script,
+    status,
+    ...(error ? { error } : {}),
+  });
+}
+
 /** ── Script runner ───────────────────────────────────────────────────────── */
 
 export function runScript(name: string): void {
@@ -53,6 +69,7 @@ export function runScript(name: string): void {
 
   if (!fs.existsSync(file)) {
     console.error(`[ScriptHost] Script not found: ${name}`);
+    notifyStatus(name, 'error', `File not found: ${name}`);
     return;
   }
 
@@ -80,9 +97,17 @@ export function runScript(name: string): void {
   child.on('exit', (code) => {
     console.log(`[ScriptHost] Script "${name}" exited with code ${code}`);
     runningScripts.delete(name);
+    notifyStatus(name, 'stopped');
+  });
+
+  child.on('error', (err) => {
+    console.error(`[ScriptHost] Script "${name}" error: ${err.message}`);
+    runningScripts.delete(name);
+    notifyStatus(name, 'error', err.message);
   });
 
   runningScripts.set(name, child);
+  notifyStatus(name, 'running');
 }
 
 export function stopScript(name: string): void {
@@ -93,6 +118,7 @@ export function stopScript(name: string): void {
   }
   child.kill('SIGTERM');
   runningScripts.delete(name);
+  notifyStatus(name, 'stopped');
   console.log(`[ScriptHost] Stopped script: ${name}`);
 }
 
@@ -110,15 +136,9 @@ export function getRunningScripts(): string[] {
   return [...runningScripts.keys()];
 }
 
-/** ── WebSocket event routing (mod asks for script list, mod asks to run a script) */
+/** ── WebSocket event routing (mod → ScriptHost) ─────────────────────────── */
 
-function handleModMessage(msg: Record<string, unknown>): void {
-  // The mod may request a list of available scripts for the in-game GUI
-  if (msg['action'] === 'scriptHost.listScripts') {
-    // Not a request/response pattern – just log
-    console.log('[ScriptHost] Script list requested by mod');
-  }
-}
+// The mod broadcasts these events to trigger script lifecycle actions.
 
 /** ── Entry point ─────────────────────────────────────────────────────────── */
 
@@ -134,7 +154,30 @@ async function main(): Promise<void> {
     console.log('[ScriptHost] Retrying in background…');
   }
 
-  // Watch for script file changes (hot-reload)
+  // ── Script control events from the mod ──────────────────────────────────
+  mc.on('runScript', (script) => {
+    console.log(`[ScriptHost] mod → runScript: ${script}`);
+    runScript(script);
+  });
+
+  mc.on('stopScript', (script) => {
+    console.log(`[ScriptHost] mod → stopScript: ${script}`);
+    stopScript(script);
+  });
+
+  mc.on('reloadScript', (script) => {
+    console.log(`[ScriptHost] mod → reloadScript: ${script}`);
+    // Reload = stop any running instance + start fresh from disk
+    stopScript(script);
+    runScript(script);
+  });
+
+  mc.on('stopAllScripts', () => {
+    console.log('[ScriptHost] mod → stopAllScripts');
+    stopAllScripts();
+  });
+
+  // ── Watch for script file changes (hot-reload) ──────────────────────────
   if (fs.existsSync(SCRIPTS_DIR)) {
     const watcher = chokidar.watch(SCRIPTS_DIR, { ignoreInitial: true });
 
@@ -160,9 +203,8 @@ async function main(): Promise<void> {
     });
   }
 
-  // Listen for mod events that trigger script execution
+  // ── Numpad quick-run hotkeys ─────────────────────────────────────────────
   mc.on('hotkey', (key) => {
-    // Numpad 1–9 → run Quick-Run script at that slot
     const match = /^NUMPAD_([1-9])$/.exec(key);
     if (match) {
       const slot = parseInt(match[1], 10) - 1;

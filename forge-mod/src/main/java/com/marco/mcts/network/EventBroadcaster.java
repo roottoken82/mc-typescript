@@ -72,6 +72,32 @@ public class EventBroadcaster {
         broadcast("death", new JsonObject());
     }
 
+    /** Broadcast a run-script event (same as the existing runScript event). */
+    public void broadcastRunScript(String name) {
+        JsonObject data = new JsonObject();
+        data.addProperty("script", name);
+        broadcast("runScript", data);
+    }
+
+    /** Broadcast a stop-script event for a specific script. */
+    public void broadcastStopScript(String name) {
+        JsonObject data = new JsonObject();
+        data.addProperty("script", name);
+        broadcast("stopScript", data);
+    }
+
+    /** Broadcast a reload-script event (stop + re-run with latest file). */
+    public void broadcastReloadScript(String name) {
+        JsonObject data = new JsonObject();
+        data.addProperty("script", name);
+        broadcast("reloadScript", data);
+    }
+
+    /** Broadcast a stop-all event that halts every running script. */
+    public void broadcastStopAllScripts() {
+        broadcast("stopAllScripts", new JsonObject());
+    }
+
     // ──────────────────────────────────────────────────────────────────────────
     // Generic broadcast
     // ──────────────────────────────────────────────────────────────────────────
