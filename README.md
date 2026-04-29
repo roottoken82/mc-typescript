@@ -233,7 +233,7 @@ Der Ordner wird beim ersten Start automatisch angelegt.
 
 ---
 
-## 9. Hotkeys (Standard)
+## 8. Hotkeys (Standard)
 
 | Taste | Aktion |
 |-------|--------|
@@ -244,7 +244,7 @@ Hotkeys können in **Optionen → Tastenbelegung → mc-typescript** umkonfiguri
 
 ---
 
-## 10. Echo-Test (Verbindung prüfen)
+## 9. Echo-Test (Verbindung prüfen)
 
 ```typescript
 // scripts/echo-test.ts

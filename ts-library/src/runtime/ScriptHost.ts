@@ -167,7 +167,8 @@ async function main(): Promise<void> {
 
   mc.on('reloadScript', (script) => {
     console.log(`[ScriptHost] mod → reloadScript: ${script}`);
-    // reload = stop (if running) + run with fresh file from disk
+    // Reload = stop any running instance + start fresh from disk
+    stopScript(script);
     runScript(script);
   });
 
