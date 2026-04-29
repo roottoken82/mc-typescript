@@ -1,0 +1,42 @@
+name: Build Forge Mod
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Repository auschecken
+        uses: actions/checkout@v4
+
+      - name: Java 17 einrichten
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Gradle-Cache einrichten
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('forge-mod/**/*.gradle*', 'forge-mod/gradle.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Forge-Mod bauen
+        working-directory: forge-mod
+        run: ./gradlew build --no-daemon
+
+      - name: JAR-Artefakt hochladen
+        uses: actions/upload-artifact@v4
+        with:
+          name: mc-typescript-jar
+          path: forge-mod/build/libs/*.jar
+          if-no-files-found: error

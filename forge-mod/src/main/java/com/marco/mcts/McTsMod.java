@@ -1,16 +1,21 @@
 package com.marco.mcts;
 
 import com.marco.mcts.client.KeyBindings;
+import com.marco.mcts.client.gui.TsMacroScreen;
 import com.marco.mcts.commands.McTsCommand;
+import com.marco.mcts.commands.TsMacroCommand;
 import com.marco.mcts.events.ChatListener;
 import com.marco.mcts.events.EntityListener;
 import com.marco.mcts.events.TickListener;
 import com.marco.mcts.network.EventBroadcaster;
+import com.marco.mcts.network.MessageRouter;
 import com.marco.mcts.network.WSServer;
+import net.minecraftforge.client.ConfigScreenHandler;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
@@ -51,12 +56,18 @@ public class McTsMod {
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {
-        // Start the WebSocket server
-        int port = 8765; // TODO: read from config/mcts-client.toml
+        // Initialise the script manager (scans <mc>/config/mc-typescript/scripts/)
+        event.enqueueWork(ScriptManager::init);
+
+        // Start the WebSocket server and wire up the message router
+        int port = 8765;
         wsServer = new WSServer(port);
         eventBroadcaster = new EventBroadcaster(wsServer);
 
-        // Share the broadcaster with listeners so they can broadcast events
+        // MessageRouter constructor also calls wsServer.setRouter(this)
+        new MessageRouter(wsServer);
+
+        // Share the broadcaster with event listeners so they can send events
         ChatListener.setEventBroadcaster(eventBroadcaster);
         TickListener.setEventBroadcaster(eventBroadcaster);
         EntityListener.setEventBroadcaster(eventBroadcaster);
@@ -67,12 +78,22 @@ public class McTsMod {
 
     private void clientSetup(final FMLClientSetupEvent event) {
         KeyBindings.register();
-        LOGGER.info("[mc-typescript] Key bindings registered.");
+
+        // Register the Config button in the Mods menu (Mods → mc-typescript → Config)
+        ModLoadingContext.get().registerExtensionPoint(
+            ConfigScreenHandler.ConfigScreenFactory.class,
+            () -> new ConfigScreenHandler.ConfigScreenFactory(
+                (mc, parent) -> new TsMacroScreen(parent)
+            )
+        );
+
+        LOGGER.info("[mc-typescript] Key bindings and config screen registered.");
     }
 
     @SubscribeEvent
     public void onRegisterCommands(RegisterCommandsEvent event) {
         McTsCommand.register(event.getDispatcher());
+        TsMacroCommand.register(event.getDispatcher());
         LOGGER.info("[mc-typescript] Commands registered.");
     }
 

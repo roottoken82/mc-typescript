@@ -30,16 +30,48 @@ Die TS-Library verbindet sich damit und sendet JSON-Befehle, die Mod führt sie 
    - macOS/Linux: `~/.minecraft/mods/`
 3. Minecraft mit dem Forge-Profil starten
 
-### Mod bauen (optional – wenn du Änderungen machst)
+---
+
+## 2. Mod aus dem Quellcode bauen
+
+### Voraussetzungen
+- **Java Development Kit (JDK) 17** → [Download Adoptium/Temurin](https://adoptium.net/)
+- Git (zum Klonen des Repos)
+
+### Schritt-für-Schritt-Anleitung
+
 ```bash
+# 1. Repository klonen
+git clone https://github.com/Marco99999999999/mc-typescript.git
+cd mc-typescript
+
+# 2. In den Forge-Mod-Ordner wechseln
 cd forge-mod
+
+# 3. Mod bauen (Linux/macOS)
 ./gradlew build
-# → forge-mod/build/libs/mc-typescript-1.0.0.jar
+
+# 3. Mod bauen (Windows)
+gradlew.bat build
 ```
+
+Das fertige JAR liegt anschließend unter:
+```
+forge-mod/build/libs/mc-typescript-1.0.0.jar
+```
+
+> **Hinweis:** Der erste Build lädt Minecraft-Abhängigkeiten herunter (~1 GB) und kann mehrere Minuten dauern.  
+> Folgende Builds sind dank Gradle-Cache deutlich schneller.
+
+### Installation der gebauten JAR
+1. Die Datei `mc-typescript-1.0.0.jar` in den `mods`-Ordner kopieren:
+   - Windows: `%APPDATA%\.minecraft\mods\`
+   - macOS/Linux: `~/.minecraft/mods/`
+2. Minecraft mit dem Forge-Profil starten
 
 ---
 
-## 2. Mit Aternos-Server verbinden
+## 3. Mit Aternos-Server verbinden
 
 Ganz normal! Keine extra Schritte nötig:
 
@@ -52,7 +84,7 @@ Ganz normal! Keine extra Schritte nötig:
 
 ---
 
-## 3. TypeScript-Runtime starten
+## 4. TypeScript-Runtime starten
 
 ```bash
 # Repository klonen / Ordner öffnen
@@ -72,7 +104,7 @@ Der Runtime verbindet sich automatisch mit `ws://localhost:8765` (der Mod muss l
 
 ---
 
-## 4. Eigenes Skript schreiben
+## 5. Eigenes Skript schreiben
 
 Erstelle eine `.ts`-Datei im `scripts/`-Ordner:
 
@@ -95,13 +127,13 @@ mc.on('chat', async (user, msg) => {
 ```
 
 Skript starten:
-- **In-Game:** `/mcts run mein-skript`
-- **Hotkey:** Standard `K` öffnet das Skript-Menü
+- **In-Game:** `/tsmacro run mein-skript`
+- **GUI:** `K` → Script-Manager öffnen → **Run** klicken
 - **Terminal:** Runtime erkennt neue Dateien automatisch (Hot-Reload)
 
 ---
 
-## 5. Verfügbare APIs
+## 6. Verfügbare APIs
 
 ```typescript
 import { mc } from 'mc-typescript'
@@ -148,19 +180,60 @@ await mc.chat.command('gamemode creative')
 
 ## 6. In-Game-Befehle
 
+### `/mcts` – Mod-Verwaltung
+
 | Befehl | Beschreibung |
 |--------|-------------|
 | `/mcts enable` | Mod aktivieren (Pflicht vor ersten Aktionen) |
 | `/mcts disable` | Mod deaktivieren |
 | `/mcts run <name>` | Skript starten |
-| `/mcts stop` | Laufendes Skript stoppen |
-| `/mcts status` | Status anzeigen |
-| `/mcts menu` | GUI-Menü öffnen |
-| `/mcts reload` | Skriptliste neu laden |
+| `/mcts stop` | Alle laufenden Skripte stoppen |
+| `/mcts status` | Verbindungs-Status anzeigen |
+| `/mcts menu` | Script-Manager-GUI öffnen |
+| `/mcts reload` | Skript-Reload-Signal senden |
+
+### `/tsmacro` – Skript-Steuerung (granular)
+
+| Befehl | Beschreibung |
+|--------|-------------|
+| `/tsmacro list` | Alle Skripte mit Status auflisten |
+| `/tsmacro run <name>` | Einzelnes Skript starten |
+| `/tsmacro stop <name>` | Einzelnes Skript stoppen |
+| `/tsmacro reload <name>` | Skript stoppen + mit neuer Version neu starten |
+| `/tsmacro stopall` | Alle laufenden Skripte stoppen |
+| `/tsmacro refresh` | Skriptliste vom Dateisystem neu einlesen |
+
+> **Tipp:** Die `<name>`-Parameter entsprechen dem Dateinamen ohne Endung,  
+> z. B. `/tsmacro run mein-skript` für `scripts/mein-skript.ts`.
 
 ---
 
-## 7. Hotkeys (Standard)
+## 7. Script-Manager-GUI
+
+### Öffnen
+- **Im Mods-Menü:** Hauptmenü → Mods → mc-typescript → **Config**
+- **Hotkey:** `K` (öffnet den Script Manager direkt)
+- **Befehl:** `/mcts menu` oder `/tsmacro menu`
+
+### Funktionen
+| Schaltfläche | Funktion |
+|---|---|
+| **Run** | Skript starten (sendet Signal an die TS-Runtime) |
+| **Stop** | Skript anhalten |
+| **Reload** | Skript stoppen + mit aktueller Dateiversion neu starten |
+| **Aktualisieren** | Skriptliste vom Dateisystem neu laden |
+| **Ordner öffnen** | Skript-Ordner im Datei-Explorer öffnen |
+
+### Skript-Ordner
+Skripte werden gesucht in:
+```
+<minecraft-Verzeichnis>/config/mc-typescript/scripts/
+```
+Der Ordner wird beim ersten Start automatisch angelegt.
+
+---
+
+## 9. Hotkeys (Standard)
 
 | Taste | Aktion |
 |-------|--------|
@@ -171,7 +244,7 @@ Hotkeys können in **Optionen → Tastenbelegung → mc-typescript** umkonfiguri
 
 ---
 
-## 8. Echo-Test (Verbindung prüfen)
+## 10. Echo-Test (Verbindung prüfen)
 
 ```typescript
 // scripts/echo-test.ts

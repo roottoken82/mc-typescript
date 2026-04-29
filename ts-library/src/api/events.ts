@@ -8,7 +8,12 @@ export type McEvent =
   | 'damage'
   | 'playerJoin'
   | 'playerLeave'
-  | 'death';
+  | 'death'
+  // Script control events (sent by the Forge mod to the TS runtime)
+  | 'runScript'
+  | 'stopScript'
+  | 'reloadScript'
+  | 'stopAllScripts';
 
 /** Event payload types */
 export interface EventPayloads {
@@ -26,6 +31,14 @@ export interface EventPayloads {
   playerLeave: [name: string];
   /** Fired when the player dies */
   death: [];
+  /** Mod asks the ScriptHost to run a script */
+  runScript: [script: string];
+  /** Mod asks the ScriptHost to stop a specific script */
+  stopScript: [script: string];
+  /** Mod asks the ScriptHost to reload (stop + restart) a script */
+  reloadScript: [script: string];
+  /** Mod asks the ScriptHost to stop all running scripts */
+  stopAllScripts: [];
 }
 
 /** Events API – register listeners for game events (mc.on) */

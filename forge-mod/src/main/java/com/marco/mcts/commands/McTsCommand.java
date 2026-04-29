@@ -80,11 +80,11 @@ public class McTsCommand {
                 .then(Commands.literal("stop")
                     .executes(ctx -> {
                         if (McTsMod.getEventBroadcaster() != null) {
-                            McTsMod.getEventBroadcaster().broadcast("stopScripts",
-                                new com.google.gson.JsonObject());
+                            McTsMod.getEventBroadcaster().broadcastStopAllScripts();
+                            com.marco.mcts.ScriptManager.resetAll();
                         }
                         ctx.getSource().sendSuccess(
-                            () -> Component.literal("§e[mc-typescript] Stop signal sent."), false);
+                            () -> Component.literal("§e[mc-typescript] Alle Skripte gestoppt."), false);
                         return 1;
                     })
                 )
@@ -93,7 +93,7 @@ public class McTsCommand {
                     .executes(ctx -> {
                         net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
                         mc.execute(() -> mc.setScreen(
-                            new com.marco.mcts.client.gui.ScriptMenuScreen()));
+                            new com.marco.mcts.client.gui.TsMacroScreen(null)));
                         return 1;
                     })
                 )
@@ -105,7 +105,7 @@ public class McTsCommand {
                                 new com.google.gson.JsonObject());
                         }
                         ctx.getSource().sendSuccess(
-                            () -> Component.literal("§e[mc-typescript] Reload signal sent."), false);
+                            () -> Component.literal("§e[mc-typescript] Reload-Signal gesendet."), false);
                         return 1;
                     })
                 )

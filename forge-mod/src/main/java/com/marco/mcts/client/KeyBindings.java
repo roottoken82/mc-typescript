@@ -1,7 +1,7 @@
 package com.marco.mcts.client;
 
 import com.marco.mcts.McTsMod;
-import com.marco.mcts.client.gui.ScriptMenuScreen;
+import com.marco.mcts.client.gui.TsMacroScreen;
 import net.minecraft.client.KeyMapping;
 import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import net.minecraftforge.client.event.InputEvent;
@@ -56,7 +56,7 @@ public class KeyBindings {
             if (KEY_MENU != null && KEY_MENU.consumeClick()) {
                 net.minecraft.client.Minecraft.getInstance()
                     .execute(() -> net.minecraft.client.Minecraft.getInstance()
-                        .setScreen(new ScriptMenuScreen()));
+                        .setScreen(new TsMacroScreen(null)));
             }
 
             // Quick-run keys
